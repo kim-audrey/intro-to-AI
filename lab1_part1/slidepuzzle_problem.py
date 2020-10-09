@@ -21,6 +21,9 @@ class Coordinate(NamedTuple, Action):
 
     def __str__(self):
         return "(R:{}, C:{})".format(self.r, self.c)
+    
+    def __eq__(self,other:Coordinate):
+        return self.r == other.r and self.c == other.c
 
 class SlidePuzzleState(StateNode):
     """ A state node for the slide puzzle environment. """
@@ -40,11 +43,22 @@ class SlidePuzzleState(StateNode):
         The number 0 represents the blank tile. 
         """
         with open(filename, 'r') as file:
-            # TODO read file and return an initial SlidePuzzleState.
-            # This return statement is just a dummy.
+            filesize= int(file.readline().strip())
+            tiles = tuple( tuple(file.readline().split()) for r in range(filesize))
+            empty_pos=Coordinate(0,0)
+            x=0
+            for row in tiles:
+                y=0
+                for col in row:
+
+                    if(int(col)==0):
+
+                        empty_pos=Coordinate(x,y)
+                    y+=1
+                x+=1
             return SlidePuzzleState( 
-                tiles = ((0,),), # tuple of tuple of 0, dummy value
-                empty_pos = Coordinate(0,0), # dummy value
+                tiles = tiles, # tuple of tuple of 0, dummy value
+                empty_pos =empty_pos, # dummy value
                 parent = None,
                 last_action = None,
                 depth = 0,
@@ -121,8 +135,13 @@ class SlidePuzzleState(StateNode):
         The goal of the slide puzzle is to have the empty spot in the 0th row and 0th col,
         and then the rest of the numbered tiles in order down the rows!
         """
-        # TODO implement!
-        return False
+        num=0
+        for row in self.tiles:
+            for col in row:
+                if(int(col)!=num):
+                    return False
+                num+=1
+        return True
     
     # Override
     def is_legal_action(self, action : Coordinate) -> bool:
@@ -135,17 +154,25 @@ class SlidePuzzleState(StateNode):
         is to be moved into the empty slot. That Coordinate needs to be not out of bounds, and 
         actually adjacent to the emty slot.
         """
-        # TODO implement!
-        return False
+        legal=False
+        if(action.r >= len(self.tiles) or action.c >= len(self.tiles)):
+            return False
+        movableTiles=self.get_surrounding_tiles(self,action)
+
+        for movable in movableTiles:
+            if (movable==self.empty_pos):
+                legal=True
+        
+        return legal
     
 
     # Override
     def get_all_actions(self) -> Iterable[Coordinate]:
         """Return all legal actions at this state."""
+
         # TODO implement! This is a good candidate for using yield (generator function)
-        yield from ()
         # alternatively, return a list, tuple, or use comprehension
-        return []
+        return self.get_surrounding_tiles(self, self.empty_pos)
         
 
     # Override
@@ -167,8 +194,42 @@ class SlidePuzzleState(StateNode):
 
         -- action is assumed legal (is_legal_action called before), but a ValueError may be passed for illegal actions if desired.
         """
-       # TODO implement! Remember that this returns a NEW state, and doesn't change this one.
-        return self
+        newtiles=list(self.tiles)
+        i=0
+        for x in newtiles:
+            newtiles[i]=list(x)
+            i+=1
+
+        newtiles[self.empty_pos.r][self.empty_pos.c]=newtiles[action.r][action.c]
+        newtiles[action.r][action.c]="0"
+
+        i=0
+        for x in newtiles:
+            newtiles[1]=tuple(x)
+            i+=1
+        newtiles=tuple(newtiles)
+
+        return SlidePuzzleState( 
+                tiles = newtiles, 
+                empty_pos =action,
+                parent = self,
+                last_action = action,
+                depth = self.depth +1,
+                path_cost = self.path_cost + 1,
+        )   
+    
+    
+    def get_surrounding_tiles(self, location:Coordinate) -> Iterable[Coordinate]:
+        movableTiles=[]
+        if(location.r!=0):
+            movableTiles.append(Coordinate(location.r-1,location.c))
+        if(location.r!=len(self.tiles)-1):
+            movableTiles.append(Coordinate(location.r+1,location.c))
+        if(location.c!=0):
+            movableTiles.append(Coordinate(location.r,location.c-1))
+        if(location.c!=len(self.tiles)-1):
+            movableTiles.append(Coordinate(location.r,location.c+1))
+        return movableTiles
         
 
     """ You may add additional methods that may be useful! """
