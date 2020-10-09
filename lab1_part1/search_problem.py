@@ -24,7 +24,7 @@ class Action:
         return NotImplementedError
 
 class StateNode:
-    """ An abstract object that represents a a state in an environment. 
+    """ An abstract object that represents a state in an environment. 
     It also serves as a search tree "node" which includes information about the state's
     parent, last action taken (that leads to this state), and the length/cost of the path
     that led to this state.
