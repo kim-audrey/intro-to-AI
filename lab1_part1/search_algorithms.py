@@ -89,10 +89,48 @@ class TreeSearchAlgorithm(GoalSearchAgent):
     implements the other methods (i.e. RandomSearch, DFS, BFS, UCS, etc.)
     """
     def search(self, 
-            initial_state : StateNode, 
-            gui_callback_fn : Callable[[StateNode],bool] = lambda : False,
-            cutoff : Union[int, float] = INF 
-            ) -> Optional[StateNode]:
+        initial_state : StateNode, 
+        gui_callback_fn : Callable[[StateNode],bool] = lambda : False,
+        cutoff : Union[int, float] = INF 
+        ) -> Optional[StateNode]:
+
+        self.enqueue(initial_state, cutoff)
+
+        if len(self.frontier) == 0:
+            return None
+
+        
+        while (len(self.frontier) > 0):
+            dQed = self.dequeue()       # STEP 1
+
+            if(dQed.is_goal_state()):   # STEP 2
+                return dQed
+            
+            if(gui_callback_fn(dQed)): # STEP 3
+                return None
+
+            iterations = 0              # STEP 4
+            for action in dQed.get_all_actions():
+                state = dQed.get_next_state(action)
+
+                
+                if state == dQed.parent:      # no backtracking
+                    continue;
+                else:  
+                    self.enqueue(state, cutoff)
+                    self.total_enqueues += 1
+                
+                if (iterations >= cutoff):     # if we pass the cutoff
+                    break;
+
+                iterations += 1
+
+            if iterations > 0:
+                self.total_extends += 1
+
+            
+                     
+        
         """ Perform a search from the initial_state. Here is the pseudocode:
         
         - Enqueue the initial_state in the frontier
@@ -110,6 +148,8 @@ class TreeSearchAlgorithm(GoalSearchAgent):
 
         Remember that "tree search" may re-enqueue or re-extend the same state, multiple times.
         """
+    
+           
 
         #TODO implement!
         return None
@@ -122,25 +162,27 @@ class DepthFirstSearch(GoalSearchAgent):
 
     DFS is implemented with a LIFO queue. A list is an efficient one. 
     """
-    
+
     def __init__(self, *args, **kwargs):
         """ Initialize self.total_extends and self.total_enqueues (done in super().__init__())
         Create an empty frontier queue.
         """
         super().__init__(*args, **kwargs)
-        # TODO initiate frontier data structure
+        self.frontier = []  
+
         
     def enqueue(self, state: StateNode, cutoff: Union[int, float] = INF):
+        if(state.depth < cutoff):
+            self.frontier.append(state)
         """ Add the state to the frontier, unless depth exceeds the cutoff """
         # TODO 
-        raise NotImplementedError
 
 
         
     def dequeue(self) -> StateNode:
         """  Choose, remove, and return the MOST RECENTLY ADDED state from the frontier."""
-        # TODO 
-        raise NotImplementedError
+        return self.frontier.pop(len(self.frontier) - 1)
+
 
 class BreadthFirstSearch(GoalSearchAgent):
     """ Partial class representing the Breadth First Search strategy.
@@ -157,18 +199,18 @@ class BreadthFirstSearch(GoalSearchAgent):
         Create an empty frontier queue.
         """
         super().__init__(*args, **kwargs)
-        # TODO initiate frontier data structure
-        
+        self.frontier = deque([])
+
+
     def enqueue(self, state: StateNode, cutoff: Union[int, float] = INF):
         """ Add the state to the frontier, unless depth exceeds the cutoff """
-        # TODO 
-        raise NotImplementedError
+        if(state.depth < cutoff):
+            self.frontier.append(state)
 
         
     def dequeue(self) -> StateNode:
         """  Choose, remove, and return the LEAST RECENTLY ADDED state from the frontier."""
-        # TODO 
-        raise NotImplementedError
+        return self.frontier.popleft()
 
 
 
@@ -192,20 +234,21 @@ class UniformCostSearch(GoalSearchAgent):
         Create an empty frontier queue.
         """
         super().__init__(*args, **kwargs)
-        # TODO initiate frontier data structure
+        self.frontier = []    # help ;-;
 
 
         
     def enqueue(self, state: StateNode, cutoff: Union[int, float] = INF):
         """ Add the state to the frontier, unless path COST exceeds the cutoff """
-        # TODO 
-        raise NotImplementedError
+        if(state.path_cost < cutoff):
+            heapq.heappush(self.frontier, (state.path_cost, state))       # is this valid
+
 
         
     def dequeue(self) -> StateNode:
         """  Choose, remove, and return the state with LOWEST PATH COST from the frontier."""
-        # TODO 
-        raise NotImplementedError
+        return heapq.heappop(self.frontier)[1]
+
 
 
 class GraphSearchAlgorithm(GoalSearchAgent):
@@ -225,6 +268,43 @@ class GraphSearchAlgorithm(GoalSearchAgent):
             gui_callback_fn : Callable[[StateNode],bool] = lambda : False,
             cutoff : Union[int, float] = INF 
             ) -> Optional[StateNode]:
+
+        enqueued = []
+            
+        self.enqueue(initial_state, cutoff)
+
+        if len(self.frontier) == 0:
+            return None
+
+        
+        while (len(self.frontier) > 0):
+            dQed = self.dequeue()
+
+            if(dQed.is_goal_state()): 
+                return dQed
+            
+            if(gui_callback_fn(dQed)): 
+                return None
+
+            iterations = 0              
+            for action in dQed.get_all_actions():
+                state = dQed.get_next_state(action)
+
+                
+                if (state == dQed.parent) or (state in enqueued):   
+                    continue;
+                else:  
+                    self.enqueue(state, cutoff)
+                    enqueued.append(state)
+                    self.total_enqueues += 1
+                
+                if (iterations >= cutoff):   
+                    break;
+
+                iterations += 1
+
+            if iterations > 0:
+                self.total_extends += 1
         """ Perform a search from the initial_state, which constitutes the initial frontier.
         
         Graph search is similar to tree search, but it manages an "extended filter" 
