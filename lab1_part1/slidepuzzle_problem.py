@@ -44,14 +44,14 @@ class SlidePuzzleState(StateNode):
         """
         with open(filename, 'r') as file:
             filesize= int(file.readline().strip())
-            tiles = tuple( tuple(file.readline().split()) for r in range(filesize))
+            tiles = tuple( tuple(int(val) for val in file.readline().split()) for r in range(filesize))
             empty_pos=Coordinate(0,0)
             x=0
             for row in tiles:
                 y=0
                 for col in row:
 
-                    if(int(col)==0):
+                    if(col==0):
 
                         empty_pos=Coordinate(x,y)
                     y+=1
@@ -138,7 +138,7 @@ class SlidePuzzleState(StateNode):
         num=0
         for row in self.tiles:
             for col in row:
-                if(int(col)!=num):
+                if(col!=num):
                     return False
                 num+=1
         return True
@@ -157,7 +157,7 @@ class SlidePuzzleState(StateNode):
         legal=False
         if(action.r >= len(self.tiles) or action.c >= len(self.tiles)):
             return False
-        movableTiles=self.get_surrounding_tiles(self,action)
+        movableTiles=self.get_surrounding_tiles(action)
 
         for movable in movableTiles:
             if (movable==self.empty_pos):
@@ -172,7 +172,7 @@ class SlidePuzzleState(StateNode):
 
         # TODO implement! This is a good candidate for using yield (generator function)
         # alternatively, return a list, tuple, or use comprehension
-        return self.get_surrounding_tiles(self, self.empty_pos)
+        return self.get_surrounding_tiles(self.empty_pos)
         
 
     # Override
@@ -201,11 +201,11 @@ class SlidePuzzleState(StateNode):
             i+=1
 
         newtiles[self.empty_pos.r][self.empty_pos.c]=newtiles[action.r][action.c]
-        newtiles[action.r][action.c]="0"
+        newtiles[action.r][action.c]=0
 
         i=0
         for x in newtiles:
-            newtiles[1]=tuple(x)
+            newtiles[i]=tuple(x)
             i+=1
         newtiles=tuple(newtiles)
 
