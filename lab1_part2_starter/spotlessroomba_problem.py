@@ -22,7 +22,6 @@ class SpotlessRoombaState(RoombaState):
         """
         with open(filename, 'r') as file:
             # This first part is the same as the RoombaState...
-
             # First line has the number of rows and columns
             max_r, max_c = (int(x) for x in file.readline().split())
             # Second line has the initial row/column of the roomba agent

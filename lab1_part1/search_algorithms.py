@@ -328,7 +328,7 @@ class InformedSearchAgent(GoalSearchAgent):
     The only change from GoalSearchAgent is a cost-heuristic is provided
     at __init__, and will be used during search.
     """
-    heuristic : Callable[[StateNode],float]
+    heuristic : Callable[[StateNode],float] # wait so callable is just like,,, function? but we're passing a state, how do we know that's right???
 
     def __init__(self, heuristic : Callable[[StateNode],float], *args, **kwargs):
         """ To be overridden by subclasses (RandomWalk, RandomSearch, DFS, BFS, UCS, Greedy, and AStar)
@@ -356,20 +356,18 @@ class GreedyBestSearch(InformedSearchAgent):
         of the remaining cost to goal. 
         """
         super().__init__(heuristic)
-        # TODO initiate frontier data structure
-
-
+        self.frontier = []    # help ;-;
         
     def enqueue(self, state: StateNode, cutoff: Union[int, float] = INF):
         """ Add the state to the frontier, unless path COST exceeds the cutoff """
-        # TODO 
-        raise NotImplementedError
-
+        if(state.path_cost < cutoff):
+            heapq.heappush(self.frontier, (self.heuristic(state), state))     # is this valid
         
     def dequeue(self) -> Tuple[float, StateNode]:
         """  Choose and remove the state with LOWEST ESTIMATED REMAINING COST TO GOAL from the frontier."""
-        # TODO 
-        raise NotImplementedError
+        return heapq.heappop(self.frontier)[1]
+
+
 
 
 class AStarSearch(InformedSearchAgent):
@@ -388,22 +386,21 @@ class AStarSearch(InformedSearchAgent):
         of remaining path cost. 
         """
         super().__init__(heuristic, *args, **kwargs)
+        self.frontier = []    # help ;-;
         # TODO initiate frontier data structure
-
 
         
     def enqueue(self, state: StateNode, cutoff: Union[int, float] = INF):
         """ Add the state to the frontier, unless path COST exceeds the cutoff """
-       # TODO 
-        raise NotImplementedError
+        if(state.path_cost < cutoff):
+            heapq.heappush(self.frontier, (self.heuristic(state) + state.path_cost, state))     # is this valid
+       
 
 
         
     def dequeue(self) -> StateNode:
         """  Choose, remove, and return the state with LOWEST ESTIMATED TOTAL PATH COST from the frontier."""
-        # TODO 
-        raise NotImplementedError
-
+        return heapq.heappop(self.frontier)[1]
 
 
 """ Informed search algorithms can be reconfigured to provide a "closest" answer
