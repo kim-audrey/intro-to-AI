@@ -15,8 +15,9 @@ def slidepuzzle_hamming(state : SlidePuzzleState)  -> float:
     ham=0
     for row in state.tiles:
         for col in row:
-            if(col!=num):
-                ham+=1
+            if(num!=0):
+                if(col!=num):
+                    ham+=1
             num+=1
     return ham
 
@@ -30,11 +31,11 @@ def slidepuzzle_manhattan(state : SlidePuzzleState)  -> float:
 
         for currY in range (len(row)):
             col = row[currY]
-
-            if (num != col):
-                goalX= (int)(col % len(row))
-                goalY= (int)(col / len(row))
-                man += abs(goalX - currX) + abs(goalY - currY)
+            if(num!=0):
+                if (num != col):
+                    goalX= (int)(col % len(row))
+                    goalY= (int)(col / len(row))
+                    man += abs(goalX - currX) + abs(goalY - currY)
             num += 1
     return man            
             
