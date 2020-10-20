@@ -429,6 +429,51 @@ class AnytimeSearchAlgorithm(InformedSearchAgent):
             gui_callback_fn : Callable[[StateNode],bool] = lambda : False,
             cutoff : Union[int, float] = INF 
             ) -> Optional[StateNode]:
+            
+        enqueued = []
+        best = initial_state
+            
+        self.enqueue(initial_state, cutoff)
+
+        if len(self.frontier) == 0:
+            return best
+
+        
+        while (len(self.frontier) > 0):
+            dQed = self.dequeue()
+
+            if(dQed.is_goal_state()): 
+                return dQed
+            
+            if(gui_callback_fn(dQed)): 
+                return best
+
+            iterations = 0              
+            for action in dQed.get_all_actions():
+                state = dQed.get_next_state(action)
+
+                
+                if (state == dQed.parent) or (state in enqueued):   
+                    continue;
+                else:  
+                    self.enqueue(state, cutoff)
+                    enqueued.append(state)
+                    self.total_enqueues += 1
+                    """
+                    if state.position==best.position:
+                      if state.path_cost < best.path_cost:
+                        best=state
+                    elif self.heuristic(state) < self.heuristic(best):
+                        best=state
+                    """
+                if (iterations >= cutoff):   
+                    break;
+
+                iterations += 1
+
+            if iterations > 0:
+                self.total_extends += 1
+            
         """ Perform an "Anytime" search from the initial_state
 
         This is the same as a graph search, but even if the search fails to find a solution, 

@@ -47,7 +47,7 @@ def spotlessroomba_second_heuristic(state : SpotlessRoombaState)  -> float:
 
 # This gorgeous beutiful masterpiece of a heuristic is technically nontrivial as it isn't always zero. However it uses the same concept as the zero hueristic, saying we are always 1 away from the goal unless we are the goal state. True beauty. This hueristic is made by Alex and only Alex,
 def silly_heuristic(state:SpotlessRoombaState) ->float:
-    if(state.is_goal_state):
+    if(state.is_goal_state()):
         return 0
     return 1
 
