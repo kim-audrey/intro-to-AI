@@ -452,22 +452,22 @@ class AnytimeSearchAlgorithm(InformedSearchAgent):
             for action in dQed.get_all_actions():
                 state = dQed.get_next_state(action)
 
-                
                 if (state == dQed.parent) or (state in enqueued):   
                     continue;
+
                 else:  
                     self.enqueue(state, cutoff)
                     enqueued.append(state)
                     self.total_enqueues += 1
-                    """
-                    if state.position==best.position:
+
+                    if self.heuristic(state) == self.heuristic(best):
                       if state.path_cost < best.path_cost:
                         best=state
                     elif self.heuristic(state) < self.heuristic(best):
                         best=state
-                    """
+                    
                 if (iterations >= cutoff):   
-                    break;
+                    break
 
                 iterations += 1
 
@@ -481,7 +481,7 @@ class AnytimeSearchAlgorithm(InformedSearchAgent):
         *Closest according to the agent's heuristic.
         """
         #TODO implement! (You may start by copying your GraphSearch's code)
-        return None
+        return best
 
 
 

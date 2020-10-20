@@ -1,4 +1,5 @@
 import sys
+import math
 from spotlessroomba_problem import SpotlessRoombaState
 from search_heuristics import *
 from spotlessroomba_problem import *
@@ -20,7 +21,7 @@ BOTH
 1. [dirty locations left] [hamming to closest]
 """
 
-#This firstly finds the hamming distance to the closest spot, doing this garuntees it goes to the closest one which is most effiecient. Afterwards it assumes the distance to each other dirty space is 1 in order to underestimate. It's basically just hamming with a few extra steps.
+# Firstly, this hueristic adds the amount of dirty spots left, as you need to move at least as many times as dirty spaces left. This means the hueristic is always consistent. Them, the manhattan distance to the nearest dirty spot is found, as going to the closest one is always optimal. This is scaled down so that it is less important than the amount of dirtly locations, which directly influences how close we are.
 def spotlessroomba_first_heuristic(state : SpotlessRoombaState)  -> float:
 
     if state.is_goal_state():
@@ -32,17 +33,30 @@ def spotlessroomba_first_heuristic(state : SpotlessRoombaState)  -> float:
     for tup in state.dirty_locations:
         if tup == state.position:
             heuri-=1
-        ham = abs(tup[0] - state.position[0]) + abs(tup[1] - state.position[1])
+        man = abs(tup[0] - state.position[0]) + abs(tup[1] - state.position[1])
+        if man < lowest:
+            lowest = man
+    heuri += lowest * .01
+
+    return heuri
+        
+#The same as the first heuristic but instead of manhattan it
+def spotlessroomba_second_heuristic(state : SpotlessRoombaState)  -> float:
+    if state.is_goal_state():
+            return 0
+
+    heuri = len(state.dirty_locations)
+
+    lowest = sys.maxsize
+    for tup in state.dirty_locations:
+        if tup == state.position:
+            heuri-=1
+        ham = math.hypot((tup[0] - state.position[0]), (tup[1] - state.position[1]))
         if ham < lowest:
             lowest = ham
     heuri += lowest * .01
 
     return heuri
-        
-
-def spotlessroomba_second_heuristic(state : SpotlessRoombaState)  -> float:
-    # TODO a nontrivial consistent heuristic
-    raise NotImplementedError
 
 
 # This gorgeous beutiful masterpiece of a heuristic is technically nontrivial as it isn't always zero. However it uses the same concept as the zero hueristic, saying we are always 1 away from the goal unless we are the goal state. True beauty. This hueristic is made by Alex and only Alex,
@@ -54,7 +68,7 @@ def silly_heuristic(state:SpotlessRoombaState) ->float:
 
 SPOTLESSROOMBA_HEURISTICS = {"Zero" : zero_heuristic,
                         "Arbitrary": arbitrary_heuristic, 
-                        "Custom Heur. 1 (admissible)": spotlessroomba_first_heuristic,
-                        "Custom Heur. 2 (consistent)" : spotlessroomba_second_heuristic,
+                        "Multi-Man": spotlessroomba_first_heuristic,
+                        "Multi-Ham" : spotlessroomba_second_heuristic,
                         "Silly" : silly_heuristic
                         }
