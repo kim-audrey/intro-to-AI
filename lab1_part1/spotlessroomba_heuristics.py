@@ -21,7 +21,10 @@ BOTH
 1. [dirty locations left] [hamming to closest]
 """
 
-# Firstly, this hueristic adds the amount of dirty spots left, as you need to move at least as many times as dirty spaces left. This means the hueristic is always consistent. Them, the manhattan distance to the nearest dirty spot is found, as going to the closest one is always optimal. This is scaled down so that it is less important than the amount of dirtly locations, which directly influences how close we are.
+# Firstly, this hueristic adds the amount of dirty spots left, as you need to move at least as many times as 
+# dirty spaces left. This means the hueristic is always consistent. Them, the manhattan distance to the nearest 
+# dirty spot is found, as going to the closest one is always optimal. This is scaled down so that it is less 
+# important than the amount of dirtly locations, which directly influences how close we are.
 def spotlessroomba_first_heuristic(state : SpotlessRoombaState)  -> float:
 
     if state.is_goal_state():
@@ -40,7 +43,7 @@ def spotlessroomba_first_heuristic(state : SpotlessRoombaState)  -> float:
 
     return heuri
         
-#The same as the first heuristic but instead of manhattan it
+# The same as the first heuristic but instead of manhattan it
 def spotlessroomba_second_heuristic(state : SpotlessRoombaState)  -> float:
     if state.is_goal_state():
             return 0
@@ -59,7 +62,9 @@ def spotlessroomba_second_heuristic(state : SpotlessRoombaState)  -> float:
     return heuri
 
 
-# This gorgeous beutiful masterpiece of a heuristic is technically nontrivial as it isn't always zero. However it uses the same concept as the zero hueristic, saying we are always 1 away from the goal unless we are the goal state. True beauty. This hueristic is made by Alex and only Alex,
+# This gorgeous beutiful masterpiece of a heuristic is technically nontrivial as it isn't always zero. 
+# However it uses the same concept as the zero hueristic, saying we are always 1 away from the goal unless we 
+# are the goal state. True beauty. This hueristic is made by Alex and only Alex,
 def silly_heuristic(state:SpotlessRoombaState) ->float:
     if(state.is_goal_state()):
         return 0
