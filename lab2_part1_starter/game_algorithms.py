@@ -2,6 +2,7 @@
 # Name(s): Mr. Wang
 # Email(s): matwan@bergen.org
 from __future__ import annotations
+import sys
 from typing import Optional, Any, Hashable, Sequence, Iterable, TypeVar, Dict, Tuple, Callable, Union
 
 import math 
@@ -51,17 +52,31 @@ class ReflexAgent(GameAgent):
         self.evaluation_fn = evaluation_fn
 
     #Override
-    def pick_action(self, state : StateNode, **kwargs) -> Tuple[Action, Optional[float], Optional[StateNode]] :
+    def pick_action(self, state : StateNode, **kwargs) -> Tuple[Action, Optional[float], Optional[StateNode]]:
+        best_action = None
+        ba_value = sys.maxsize
+        ba_expected_state = None
+        
+
+        for a in state.get_all_actions():
+            s = state.get_next_state(a)
+            s_value = self.evaluation_fn(s, self.player_index)
+            if s_value < ba_value:
+                ba_value = s_value
+                best_action = a
+                ba_expected_state = s
+
+        return Tuple[best_action, ba_value, ba_expected_state];
+
         """
         Doesn't do any kind of search, just picks the action that leads to the "best" state, according to self.evaluation_fn.
 
-        Return 2 things (a 2-tuple): (action, value)
+        Return 2 things (a 3-tuple): (action, value)
         1) an action for the state 
         2) The computed value of taking that action  
         3) The future state that the computed value is derived from
         """
-        # TODO
-        raise NotImplementedError
+
 
 ### Part 1: Search Agents: Maximizing, Minimax, AlphaBeta Minimax, Expectimax ###################
 
