@@ -200,9 +200,6 @@ class MaximizingSearchAgent(GameSearchAgent):
         return bestul_restul
 
     
-
-
-
 class MinimaxSearchAgent(GameSearchAgent):
     """
     A search agent that recursively searches the game tree, performing Maximizing Depth First Search.
@@ -324,12 +321,55 @@ class AlphaBetaSearchAgent(GameSearchAgent):
 
     #Override
     def pick_action(self, state : StateNode) -> Optional[Tuple[Action, float, Optional[StateNode]]]:
-        """ Override GameSearchAgent.pick_action (see the docstring above) 
-        Alternatively, remove this if you just want to inherit from GameSearchAgent
-        You might write additional helper methods. 
-        """
-        # TODO
-        raise NotImplementedError
+
+        def max_value(state, alpha, beta) -> Optional[Tuple[Action, float, Optional[StateNode]]]:
+            
+            self.total_nodes += 1
+            if state.depth >= self.depth_limit or state.is_endgame_state():          
+                self.gui_callback_fn(state, self.evaluation_fn(state, self.player_index))   
+                self.total_evals += 1
+                return [state.last_action, self.evaluation_fn(state, self.player_index), state]
+
+            v = Tuple[None, -1 * sys.maxsize]
+            minnie = None
+            for action in state.get_all_actions():
+                succ = state.get_next_state(action)
+                minnie = min_value(succ, alpha, beta)
+                v = v if (max(v[1], minnie[1]) == v[1]) else minnie
+                if v[1] >= beta:
+                    return minnie
+                alpha = max(alpha, v[1])
+            return v
+
+
+        def min_value(state, alpha, beta) -> Optional[Tuple[Action, float, Optional[StateNode]]]:
+                
+            self.total_nodes += 1
+            if state.depth >= self.depth_limit or state.is_endgame_state():          
+                self.gui_callback_fn(state, self.evaluation_fn(state, self.player_index))   
+                self.total_evals += 1
+                return [state.last_action, self.evaluation_fn(state, self.player_index), None]
+
+            v = Tuple[None, sys.maxsize]
+            maxxie = None
+            for action in state.get_all_actions():
+                succ = state.get_next_state(action)
+                maxxie = max_value(succ, alpha, beta)
+                v = v if (min(v[1], maxxie[1]) == v[1]) else maxxie
+                if v[1] <= alpha:
+                    return maxxie
+                beta = min(beta, v[1])
+            return v     
+
+
+        alpha = sys.maxsize     # MAX best option
+        beta = -1 * sys.maxsize     # MIN best option
+
+        restul = max_value(state, alpha, beta)
+        return restul;
+
+
+
 
 ### Part 3: Iterative Deepening, Transposition Tables & Move Ordering #################################################
 
@@ -361,6 +401,7 @@ class IterativeDeepeningSearchAgent(GameSearchAgent):
         super().__init__(*args, **kwargs)
         self.plateau_cutoff = plateau_cutoff
 
+
     def iterative_pick_action(self, state: StateNode) -> List[Tuple[Action, float, Optional[StateNode]]]: 
         """ Performs an iterative deepening search by calling self.pick_action() repeatedly, starting with self.depth_limit = 1 and incrementing by 1.
         
@@ -377,9 +418,17 @@ class IterativeDeepeningSearchAgent(GameSearchAgent):
 
         NOTE: This should be a very short and simple function. Do NOT reimplement pick_action()
         """
-        # TODO
-        raise NotImplementedError
 
+        repeats = 0
+        best_picks = []
+
+        i = 1
+        while not ((self.gui_callback_fn == True) or (repeats == self.plateau_cutoff)):
+            self.depth_limit = i
+            best_picks.append(self.pick_action(state))
+            i += 1
+
+        return best_picks
 
 
 """
@@ -409,12 +458,75 @@ class MoveOrderingAlphaBetaSearchAgent(AlphaBetaSearchAgent):
 
     #Override
     def pick_action(self, state : StateNode) -> Optional[Tuple[Action, float, Optional[StateNode]]]:
-        """ Override AlphaBetaSearchAgent.pick_action (see the docstrings above) 
-        Alternatively, remove this if you just want to inherit from AlphaBetaSearchAgent
-        You might write additional helper methods. 
-        """
-        # TODO
-        raise NotImplementedError
+        def max_value(state, alpha, beta) -> Optional[Tuple[Action, float, Optional[StateNode]]]:
+                
+            self.total_nodes += 1
+            if state.depth >= self.depth_limit or state.is_endgame_state():          
+                self.gui_callback_fn(state, self.evaluation_fn(state, self.player_index))   
+                self.total_evals += 1
+                return [state.last_action, self.evaluation_fn(state, self.player_index), state]
+
+            v = Tuple[None, -1 * sys.maxsize]
+            minnie = None
+
+            
+            if state in self.t_table.keys():
+                restul = state.get_next_state(self.t_table[state])
+                minnie = min_value(restul, alpha, beta)
+                v = v if (max(v[1], minnie[1]) == v[1]) else minnie
+                if v[1] >= beta:
+                    return minnie
+                alpha = max(alpha, v[1])
+
+            for action in state.get_all_actions():
+                succ = state.get_next_state(action)
+                minnie = min_value(succ, alpha, beta)
+                v = v if (max(v[1], minnie[1]) == v[1]) else minnie
+                if v[1] >= beta:
+                    self.t_table[state] = action
+                    return minnie
+                alpha = max(alpha, v[1])
+            self.t_table[state] = v[0]
+            return v
+
+
+        def min_value(state, alpha, beta) -> Optional[Tuple[Action, float, Optional[StateNode]]]:
+                
+            self.total_nodes += 1
+            if state.depth >= self.depth_limit or state.is_endgame_state():          
+                self.gui_callback_fn(state, self.evaluation_fn(state, self.player_index))   
+                self.total_evals += 1
+                return [state.last_action, self.evaluation_fn(state, self.player_index), None]
+
+            v = Tuple[None, sys.maxsize]
+            maxxie = None
+            
+            if state in self.t_table.keys():
+                restul = state.get_next_state(self.t_table[state])
+                v = v if (min(v[1], maxxie[1]) == v[1]) else maxxie
+                if v[1] <= alpha:
+                    return maxxie
+                beta = min(beta, v[1])
+
+            for action in state.get_all_actions():
+                succ = state.get_next_state(action)
+                maxxie = max_value(succ, alpha, beta)
+                v = v if (min(v[1], maxxie[1]) == v[1]) else maxxie
+                if v[1] <= alpha:
+                    self.t_table[state] = action
+                    return maxxie
+                beta = min(beta, v[1])
+            self.t_table[state] = v[0]
+            return v     
+
+
+        alpha = sys.maxsize     # MAX best option
+        beta = -1 * sys.maxsize     # MIN best option
+
+        restul = max_value(state, alpha, beta)
+        return restul;
+            
+
 
 
 ### EXTENSION: Monte Carlo Tree Search #################################################
