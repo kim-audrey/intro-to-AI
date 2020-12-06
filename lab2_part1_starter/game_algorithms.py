@@ -118,6 +118,7 @@ class GameSearchAgent(GameAgent):
         
     #Override
     def pick_action(self, state : StateNode) -> Optional[Tuple[Action, float, Optional[StateNode]]]:
+
         """ To be overridden, possibly, by subclasses.
 
         Assumes that state.current_player_index == self.player_index. Behavior undefined if that is not the case.
@@ -161,15 +162,35 @@ class MaximizingSearchAgent(GameSearchAgent):
 
     #Override
     def pick_action(self, state : StateNode) -> Optional[Tuple[Action, float, Optional[StateNode]]]:
-        """ Override GameSearchAgent.pick_action (see the docstring above) 
-        Alternatively, remove this if you just want to inherit from GameSearchAgent
-        You might write additional helper methods. 
-        """
-        # TODO
-        raise NotImplementedError
+        EVAL_VAL_INDEX = 1
+
+        # 4 debugging with gui_callback_fn: nodes_visited = []
+
+        self.total_nodes += 1
+        if state.depth >= self.depth_limit or state.is_endgame_state():          
+                self.gui_callback_fn(state, self.evaluation_fn(state, self.player_index))   
+                self.total_evals += 1
+                return [state.last_action, self.evaluation_fn(state, self.player_index), state]
+
+        bestul_restul = None
+        
+        
+        for action in state.get_all_actions():
+
+            # 4 debugging with gui_callback_fn: nodes_visited.append(state.get_next_state(action))
+            restul = self.pick_action(state.get_next_state(action))
+
+            if ((bestul_restul == None) or (restul[EVAL_VAL_INDEX] > bestul_restul[EVAL_VAL_INDEX])):
+                bestul_restul = restul
+                bestul_restul[0] = state.last_action
+        
+        # 4 debugging with gui_callback_fn: self.gui_callback_fn(state, self.evaluation_fn(state, self.player_index), nodes_visited)
+
+        return bestul_restul
 
     
-        
+
+
 
 class MinimaxSearchAgent(GameSearchAgent):
     """
@@ -180,13 +201,43 @@ class MinimaxSearchAgent(GameSearchAgent):
     """
     #Override
     def pick_action(self, state : StateNode) -> Optional[Tuple[Action, float, Optional[StateNode]]]:
+
+        EVAL_VAL_INDEX = 1
+
+        # 4 debugging with gui_callback_fn: nodes_visited = []
+
+        self.total_nodes += 1
+        if state.depth >= self.depth_limit or state.is_endgame_state():          
+                self.gui_callback_fn(state, self.evaluation_fn(state, self.player_index))   
+                self.total_evals += 1
+                return [state.last_action, self.evaluation_fn(state, self.player_index), state]
+
+        bestul_restul = None
+        
+        for action in state.get_all_actions():
+
+            # 4 debugging with gui_callback_fn: nodes_visited.append(state.get_next_state(action))
+            restul = self.pick_action(state.get_next_state(action))
+
+            if self.player_index == state.current_player_index:
+                if ((bestul_restul == None) or (restul[EVAL_VAL_INDEX] > bestul_restul[EVAL_VAL_INDEX])):
+                    bestul_restul = restul
+                    bestul_restul[0] = state.last_action
+
+            else:
+                if ((bestul_restul == None) or (restul[EVAL_VAL_INDEX] < bestul_restul[EVAL_VAL_INDEX])):
+                    bestul_restul = restul
+                    bestul_restul[0] = state.last_action
+        
+
+        # 4 debugging with gui_callback_fn: self.gui_callback_fn(state, self.evaluation_fn(state, self.player_index), nodes_visited)
+
+        return bestul_restul
+
         """ Override GameSearchAgent.pick_action (see the docstring above) 
         Alternatively, remove this if you just want to inherit from GameSearchAgent
         You might write additional helper methods. 
         """
-        # TODO
-        raise NotImplementedError
-
 
 class ExpectimaxSearchAgent(GameSearchAgent):
     """
@@ -204,8 +255,41 @@ class ExpectimaxSearchAgent(GameSearchAgent):
         NOTE: Unlike the other search agents, the expected value is not derived from only one leaf state. 
         So, you can just return None (or anything really) for the third return value, as it will be fairly meaningless.
         """
-        # TODO
-        raise NotImplementedError
+
+        EVAL_VAL_INDEX = 1
+
+        # 4 debugging with gui_callback_fn: nodes_visited = []
+
+        self.total_nodes += 1
+        if state.depth >= self.depth_limit or state.is_endgame_state():          
+                self.gui_callback_fn(state, self.evaluation_fn(state, self.player_index))   
+                self.total_evals += 1
+                return [state.last_action, self.evaluation_fn(state, self.player_index), None]
+
+        expectul_restul_val = 0
+        bestul_restul = None
+
+        for action in state.get_all_actions():
+
+            if self.player_index == state.current_player_index:
+                restul = self.pick_action(state.get_next_state(action))
+
+                if ((bestul_restul == None) or (restul[EVAL_VAL_INDEX] > bestul_restul[EVAL_VAL_INDEX])):
+                    bestul_restul = restul
+                    bestul_restul[0] = state.last_action
+
+            else:
+                # 4 debugging with gui_callback_fn: nodes_visited.append(state.get_next_state(action))
+                restul = self.pick_action(state.get_next_state(action))
+                expectul_restul_val += restul[EVAL_VAL_INDEX]
+            
+            
+        return bestul_restul if (self.player_index == state.current_player_index) else ([state.last_action, expectul_restul_val / len(state.get_all_actions()), None])
+        
+
+        # 4 debugging with gui_callback_fn: self.gui_callback_fn(state, self.evaluation_fn(state, self.player_index), nodes_visited)
+
+
 
 
 ### Part 2: Alpha-Beta Pruning,  #################################################
