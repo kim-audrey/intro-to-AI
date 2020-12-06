@@ -164,27 +164,38 @@ class MaximizingSearchAgent(GameSearchAgent):
     def pick_action(self, state : StateNode) -> Optional[Tuple[Action, float, Optional[StateNode]]]:
         EVAL_VAL_INDEX = 1
 
-        # 4 debugging with gui_callback_fn: nodes_visited = []
+        # 4 debugging with gui_callback_fn: 
+        nodes_visited = []
 
         self.total_nodes += 1
         if state.depth >= self.depth_limit or state.is_endgame_state():          
-                self.gui_callback_fn(state, self.evaluation_fn(state, self.player_index))   
-                self.total_evals += 1
-                return [state.last_action, self.evaluation_fn(state, self.player_index), state]
+            self.gui_callback_fn(state, self.evaluation_fn(state, self.player_index))   
+            self.total_evals += 1
+            print("\t\tSTATE.LASTACTION:")
+            print(state.last_action)
+            return [state.last_action, self.evaluation_fn(state, self.player_index), state]
 
         bestul_restul = None
         
-        
         for action in state.get_all_actions():
 
-            # 4 debugging with gui_callback_fn: nodes_visited.append(state.get_next_state(action))
+            # 4 debugging with gui_callback_fn: 
+            nodes_visited.append(state.get_next_state(action))
             restul = self.pick_action(state.get_next_state(action))
 
             if ((bestul_restul == None) or (restul[EVAL_VAL_INDEX] > bestul_restul[EVAL_VAL_INDEX])):
+                print("\t\tNEW BESTUL VALUE" + (str)(restul[EVAL_VAL_INDEX]))
                 bestul_restul = restul
-                bestul_restul[0] = state.last_action
+                # bestul_restul[0] = state.last_action
         
-        # 4 debugging with gui_callback_fn: self.gui_callback_fn(state, self.evaluation_fn(state, self.player_index), nodes_visited)
+        # 4 debugging with gui_callback_fn: 
+        self.gui_callback_fn(state, self.evaluation_fn(state, self.player_index), nodes_visited)
+        print("****************************")
+        print(bestul_restul[0])
+        print(bestul_restul[1])
+        print(bestul_restul[2])
+        print("****************************")
+
 
         return bestul_restul
 
