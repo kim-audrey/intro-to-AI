@@ -235,8 +235,18 @@ def defensive_eval_roomba(state : RoombaRaceGameState, player_index : int):
     The goal here is not necessarily an ideal heuristic, but one that produces human-like emergent behavior when searching to non-terminal states.
     This evaluation function should produce an agent who general plays "defensively".
     """
-    # TODO
-    raise NotImplementedError
+
+    if(state.is_endgame_state()):
+        return state.endgame_utility(player_index);
+    
+
+    opponent_pos = state.get_position(0 if (player_index == 1) else 1)     # best use of ternary UwU
+    our_pos = state.get_position(player_index)
+
+    return (abs(opponent_pos[0] - our_pos[0]) + abs(opponent_pos[1] - our_pos[1])) / (len(state.grid) + len(state.grid[0]))
+
+
+    
 
 
 def aggressive_eval_roomba(state : RoombaRaceGameState, player_index : int):
@@ -250,6 +260,16 @@ def aggressive_eval_roomba(state : RoombaRaceGameState, player_index : int):
     The goal here is not necessarily an ideal heuristic, but one that produces human-like emergent behavior when searching to non-terminal states.
     This evaluation function should produce an agent who general plays "aggressively".
     """
+    if(state.is_endgame_state()):
+        return state.endgame_utility(player_index);
+    
+
+    opponent_pos = state.get_position(0 if (player_index == 1) else 1)     # best use of ternary UwU
+    our_pos = state.get_position(player_index)
+
+    return 1 / (abs(opponent_pos[0] - our_pos[0]) + abs(opponent_pos[1] - our_pos[1]))
+
+
     
 
 
