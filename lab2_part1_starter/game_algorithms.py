@@ -1,6 +1,7 @@
 # Lab 2: Games (Connect-4, Roomba Race)
 # Name(s): Mr. Wang
 # Email(s): matwan@bergen.org
+# python test_game_gui.py tictactoe initial_states/tictactoe_states/tictactoe_losing.txt
 from __future__ import annotations
 import sys
 from typing import Optional, Any, Hashable, Sequence, Iterable, TypeVar, Dict, Tuple, Callable, Union
@@ -66,7 +67,7 @@ class ReflexAgent(GameAgent):
                 best_action = a
                 ba_expected_state = s
 
-        return Tuple[best_action, ba_value, ba_expected_state];
+        return (best_action, ba_value, ba_expected_state);
 
         """
         Doesn't do any kind of search, just picks the action that leads to the "best" state, according to self.evaluation_fn.
@@ -164,41 +165,23 @@ class MaximizingSearchAgent(GameSearchAgent):
     def pick_action(self, state : StateNode) -> Optional[Tuple[Action, float, Optional[StateNode]]]:
         EVAL_VAL_INDEX = 1
 
-        # 4 debugging with gui_callback_fn: 
-        nodes_visited = []
-
         self.total_nodes += 1
         if state.depth >= self.depth_limit or state.is_endgame_state():          
             self.gui_callback_fn(state, self.evaluation_fn(state, self.player_index))   
             self.total_evals += 1
-            print("\t\tSTATE.LASTACTION:")
-            print(state.last_action)
             return [state.last_action, self.evaluation_fn(state, self.player_index), state]
 
         bestul_restul = None
         
         for action in state.get_all_actions():
 
-            # 4 debugging with gui_callback_fn: 
-            nodes_visited.append(state.get_next_state(action))
             restul = self.pick_action(state.get_next_state(action))
 
             if ((bestul_restul == None) or (restul[EVAL_VAL_INDEX] > bestul_restul[EVAL_VAL_INDEX])):
-                print("\t\tNEW BESTUL VALUE" + (str)(restul[EVAL_VAL_INDEX]))
                 bestul_restul = restul
                 # bestul_restul[0] = state.last_action
-        
-        # 4 debugging with gui_callback_fn: 
-        self.gui_callback_fn(state, self.evaluation_fn(state, self.player_index), nodes_visited)
-        print("****************************")
-        print(bestul_restul[0])
-        print(bestul_restul[1])
-        print(bestul_restul[2])
-        print("****************************")
-
 
         return bestul_restul
-
     
 class MinimaxSearchAgent(GameSearchAgent):
     """
@@ -230,12 +213,12 @@ class MinimaxSearchAgent(GameSearchAgent):
             if self.player_index == state.current_player_index:
                 if ((bestul_restul == None) or (restul[EVAL_VAL_INDEX] > bestul_restul[EVAL_VAL_INDEX])):
                     bestul_restul = restul
-                    bestul_restul[0] = state.last_action
+                    bestul_restul[0] = action
 
             else:
                 if ((bestul_restul == None) or (restul[EVAL_VAL_INDEX] < bestul_restul[EVAL_VAL_INDEX])):
                     bestul_restul = restul
-                    bestul_restul[0] = state.last_action
+                    bestul_restul[0] = action
         
 
         # 4 debugging with gui_callback_fn: self.gui_callback_fn(state, self.evaluation_fn(state, self.player_index), nodes_visited)
@@ -284,7 +267,7 @@ class ExpectimaxSearchAgent(GameSearchAgent):
 
                 if ((bestul_restul == None) or (restul[EVAL_VAL_INDEX] > bestul_restul[EVAL_VAL_INDEX])):
                     bestul_restul = restul
-                    bestul_restul[0] = state.last_action
+                    bestul_restul[0] = action
 
             else:
                 # 4 debugging with gui_callback_fn: nodes_visited.append(state.get_next_state(action))
@@ -296,7 +279,6 @@ class ExpectimaxSearchAgent(GameSearchAgent):
         
 
         # 4 debugging with gui_callback_fn: self.gui_callback_fn(state, self.evaluation_fn(state, self.player_index), nodes_visited)
-
 
 
 
@@ -330,14 +312,16 @@ class AlphaBetaSearchAgent(GameSearchAgent):
                 self.total_evals += 1
                 return [state.last_action, self.evaluation_fn(state, self.player_index), state]
 
-            v = Tuple[None, -1 * sys.maxsize]
+            v = (None, -1 * sys.maxsize)
             minnie = None
             for action in state.get_all_actions():
                 succ = state.get_next_state(action)
-                minnie = min_value(succ, alpha, beta)
+                minnie = min_value(succ, alpha, beta)                    
+                minnie[0] = action
+
                 v = v if (max(v[1], minnie[1]) == v[1]) else minnie
                 if v[1] >= beta:
-                    return minnie
+                    return v
                 alpha = max(alpha, v[1])
             return v
 
@@ -350,20 +334,21 @@ class AlphaBetaSearchAgent(GameSearchAgent):
                 self.total_evals += 1
                 return [state.last_action, self.evaluation_fn(state, self.player_index), None]
 
-            v = Tuple[None, sys.maxsize]
+            v = (None, sys.maxsize)
             maxxie = None
             for action in state.get_all_actions():
                 succ = state.get_next_state(action)
                 maxxie = max_value(succ, alpha, beta)
+                maxxie[0] = action
                 v = v if (min(v[1], maxxie[1]) == v[1]) else maxxie
                 if v[1] <= alpha:
-                    return maxxie
+                    return v
                 beta = min(beta, v[1])
             return v     
 
 
-        alpha = sys.maxsize     # MAX best option
-        beta = -1 * sys.maxsize     # MIN best option
+        alpha = -1 * sys.maxsize     # MAX best option
+        beta = sys.maxsize     # MIN best option
 
         restul = max_value(state, alpha, beta)
         return restul;
@@ -378,6 +363,7 @@ Useful functions for this section:
 time(): the current system time in seconds. You can measure elapsed time this way
 """
 
+#akljdfsdf
 """
 So far, all our search agents are hard commitments - we don't get a usable result until they finish searching to self.depth_limit completely. 
 This is not very practical, especially if we have a limited amount of time but don't know how deep we can afford to search. 
@@ -430,7 +416,6 @@ class IterativeDeepeningSearchAgent(GameSearchAgent):
 
         return best_picks
 
-
 """
     The effectiveness of alpha-beta pruning depends on what order moves are explored.
     If the best moves are explored first at each node, then maximum pruning will occur.
@@ -458,21 +443,28 @@ class MoveOrderingAlphaBetaSearchAgent(AlphaBetaSearchAgent):
 
     #Override
     def pick_action(self, state : StateNode) -> Optional[Tuple[Action, float, Optional[StateNode]]]:
+        # 4 debugging with gui_callback_fn: 
+        nodes_visited = []
+        
         def max_value(state, alpha, beta) -> Optional[Tuple[Action, float, Optional[StateNode]]]:
                 
             self.total_nodes += 1
             if state.depth >= self.depth_limit or state.is_endgame_state():          
                 self.gui_callback_fn(state, self.evaluation_fn(state, self.player_index))   
                 self.total_evals += 1
+
+                # 4 debugging with gui_callback_fn: 
+                nodes_visited.append(state.get_next_state(state.last_action))
+
                 return [state.last_action, self.evaluation_fn(state, self.player_index), state]
 
-            v = Tuple[None, -1 * sys.maxsize]
+            v = (None, -1 * sys.maxsize)
             minnie = None
-
             
             if state in self.t_table.keys():
                 restul = state.get_next_state(self.t_table[state])
                 minnie = min_value(restul, alpha, beta)
+                minnie[0] = self.t_table[state]
                 v = v if (max(v[1], minnie[1]) == v[1]) else minnie
                 if v[1] >= beta:
                     return minnie
@@ -481,12 +473,15 @@ class MoveOrderingAlphaBetaSearchAgent(AlphaBetaSearchAgent):
             for action in state.get_all_actions():
                 succ = state.get_next_state(action)
                 minnie = min_value(succ, alpha, beta)
+                minnie[0] = action
+
                 v = v if (max(v[1], minnie[1]) == v[1]) else minnie
                 if v[1] >= beta:
                     self.t_table[state] = action
-                    return minnie
+                    return v
                 alpha = max(alpha, v[1])
             self.t_table[state] = v[0]
+
             return v
 
 
@@ -498,11 +493,13 @@ class MoveOrderingAlphaBetaSearchAgent(AlphaBetaSearchAgent):
                 self.total_evals += 1
                 return [state.last_action, self.evaluation_fn(state, self.player_index), None]
 
-            v = Tuple[None, sys.maxsize]
+            v = (None, sys.maxsize)
             maxxie = None
             
             if state in self.t_table.keys():
                 restul = state.get_next_state(self.t_table[state])
+                maxxie = max_value(restul, alpha, beta)
+                maxxie[0] = self.t_table[state]
                 v = v if (min(v[1], maxxie[1]) == v[1]) else maxxie
                 if v[1] <= alpha:
                     return maxxie
@@ -511,19 +508,25 @@ class MoveOrderingAlphaBetaSearchAgent(AlphaBetaSearchAgent):
             for action in state.get_all_actions():
                 succ = state.get_next_state(action)
                 maxxie = max_value(succ, alpha, beta)
+                maxxie[0] = action
                 v = v if (min(v[1], maxxie[1]) == v[1]) else maxxie
                 if v[1] <= alpha:
                     self.t_table[state] = action
-                    return maxxie
+                    return v
                 beta = min(beta, v[1])
             self.t_table[state] = v[0]
             return v     
 
-
-        alpha = sys.maxsize     # MAX best option
-        beta = -1 * sys.maxsize     # MIN best option
+        
+        # 4 debugging with gui_callback_fn: 
+        self.gui_callback_fn(state, self.evaluation_fn(state, self.player_index), nodes_visited)
+        
+        alpha = -1 * sys.maxsize     # MAX best option
+        beta = sys.maxsize     # MIN best option
 
         restul = max_value(state, alpha, beta)
+
+        print(self.t_table)
         return restul;
             
 

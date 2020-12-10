@@ -604,7 +604,7 @@ class TicTacToeGUI(PlayGameGui):
                     self.canvas.create_oval(x1 + self.margin, y1 + self.margin, x2 - self.margin, y2 - self.margin, fill= COLORS[PIECE[piece]], tag='pieces')
 
         # draw text for path
-        path_coords = [self.calculate_center_coords( *state.last_action ) # r,c coordinates
+        path_coords = [self.calculate_center_coords( state.last_action.row, state.last_action.col  ) # r,c coordinates
                         for state in self.display_state.get_path()[1:] ]
 
         for i, pos in enumerate(path_coords): # don't do the first state
@@ -689,7 +689,7 @@ class NimGUI(PlayGameGui):
 
         # for every action taken
         for i, state in enumerate(self.display_state.get_path()[1:]): # don't do the first state
-            rem_stones, pile = state.last_action
+            rem_stones, pile = state.last_action.stones, state.last_action.pile
             orig_stones = state.parent.get_stones_in_pile(pile)
             player = state.parent.current_player_index
             # draw over each stone

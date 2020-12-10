@@ -2,6 +2,7 @@
 # Name(s): Mr. Wang
 # Email(s): matwan@bergen.org
 
+import sys
 from connectfour_game import *
 from tictactoe_game import *
 from nim_game import *
@@ -51,7 +52,6 @@ def faster_endgame_score_heur_zero_eval_fn(state : StateNode, player_index : int
     
     return 0
 
-        
 
 ## TicTacToe specific evaluation functions: ###########
 
@@ -113,7 +113,6 @@ tictactoe_functions = {
 }
 
 
-
 ## Nim specific evaluation functions: ###########
 
 def empty_rows_eval_nim(state : NimGameState, player_index : int):
@@ -133,6 +132,7 @@ def empty_rows_eval_nim(state : NimGameState, player_index : int):
     return [state.get_stones_in_pile(p) for p in range(state.get_num_piles())].count(0) / state.get_num_piles()
 
 
+# python test_game_gui.py nim initial_states/nim_states/nim_5_winning.txt
 def custom_eval_nim(state : NimGameState, player_index : int):
     """ 
     Given a NimGameState and the player_index of the "maximizer",
@@ -143,10 +143,22 @@ def custom_eval_nim(state : NimGameState, player_index : int):
 
     There DOES exist a perfect, mathematical way to evaluate a NimGameState as a winning or losing position.
     Such a perfect evaluation would allow a Reflex agent to play just as well as a full Minimax player.
-    But, you don't HAVE to do that - you may come up with something that would be more *sporting* for a human to play against.
     """
-    # TODO 
-    raise NotImplementedError
+    if(state.is_endgame_state()):
+        if (state.current_player_index == player_index):
+            return 1
+        return -1
+    
+    nimsum = 0
+    for num in range (state.get_num_piles()):
+        nimsum ^= state.get_stones_in_pile(num)
+        print(nimsum)
+    
+    if((nimsum == 0) == (state.current_player_index != player_index)):
+        return 1
+   
+    return -1
+
 
 
 # Add new evaluation functions to this dictionary.
@@ -238,8 +250,7 @@ def aggressive_eval_roomba(state : RoombaRaceGameState, player_index : int):
     The goal here is not necessarily an ideal heuristic, but one that produces human-like emergent behavior when searching to non-terminal states.
     This evaluation function should produce an agent who general plays "aggressively".
     """
-    # TODO
-    raise NotImplementedError
+    
 
 
 # Add new evaluation functions to this dictionary.
@@ -249,9 +260,4 @@ roomba_functions = {
     "custom aggressive": aggressive_eval_roomba,
     "custom defensive": defensive_eval_roomba
 }
-
-
-
-
-
 

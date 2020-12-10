@@ -8,7 +8,7 @@ from gamesearch_problem import StateNode, Action
 """
 An abstract framework for the game of TicTacToe
 """
-class TicTacToeAction(NamedTuple, Action):
+class TicTacToeAction(Action):
     """ Represents the playing of a piece in a column.
     Can be created with TicTacToeAction(column).
     """
@@ -16,6 +16,11 @@ class TicTacToeAction(NamedTuple, Action):
     col : int
     def __str__(self):
         return "Play row {}, col {}".format(self.row, self.col)
+
+    def __init__(self, row, col):
+        self.row = row
+        self.col = col
+        
 
     @staticmethod
     def str_to_action(text : str) -> Optional[Action]:
